@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" data-md-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <title>md-viewer Settings</title>
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/prism.css" />
+    <link rel="stylesheet" href="css/options.css" />
+  </head>
+  <body>
+    <main class="opts">
+      <header class="opts-head">
+        <h1>
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.102-.302c-.067-.019-.177-.011-.3.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.211.224l-.29 1.106c-.168.646-.715 1.196-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.289-.614-1.458-1.26l-.289-1.106c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.211-.224l.29-1.106C6.009.645 6.556.095 7.299.03 7.53.01 7.764 0 8 0Zm-.571 1.525c-.036.003-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.423-1.529.27l-1.103-.303c-.109-.03-.175.016-.195.045-.22.312-.412.644-.573.99-.014.031-.021.11.059.19l.815.806c.411.406.562.957.53 1.456a4.709 4.709 0 0 0 0 .582c.032.499-.119 1.05-.53 1.456l-.815.806c-.081.08-.073.159-.059.19.162.346.353.677.573.989.02.03.085.076.195.046l1.102-.303c.56-.153 1.113-.008 1.53.27.161.107.328.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.109.101.143.137.146a6.6 6.6 0 0 0 1.142 0c.036-.003.108-.036.137-.146l.289-1.105c.147-.561.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.423 1.529-.27l1.103.303c.109.029.175-.016.195-.045.22-.313.411-.644.573-.99.014-.031.019-.11-.059-.19l-.815-.806c-.411-.406-.562-.957-.53-1.456a4.709 4.709 0 0 0 0-.582c-.032.499.119 1.05.53 1.456l.815.806c.081.08.073.159.059.19a6.464 6.464 0 0 0-.573-.989c-.02-.03-.085-.076-.195-.046l-1.102.303c-.56.153-1.113.008-1.53-.27a4.44 4.44 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.143-.137-.146a6.6 6.6 0 0 0-1.142 0ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM9.5 8a1.5 1.5 0 1 0-3.001.001A1.5 1.5 0 0 0 9.5 8Z"/></svg>
+          md-viewer Settings
+        </h1>
+        <p class="opts-sub">Changes are saved instantly and apply to every rendered Markdown page.</p>
+      </header>
+
+      <section class="opts-group" aria-labelledby="h-appearance">
+        <h2 id="h-appearance">Appearance</h2>
+
+        <div class="opts-row">
+          <span class="opts-label" id="theme-label">Theme</span>
+          <div class="theme-cards" role="radiogroup" aria-labelledby="theme-label" id="theme-cards">
+            <button type="button" class="theme-card" role="radio" data-value="system" aria-checked="false">
+              <span class="swatch swatch-system" aria-hidden="true"></span>
+              <span class="theme-name">System</span>
+            </button>
+            <button type="button" class="theme-card" role="radio" data-value="light" aria-checked="false">
+              <span class="swatch swatch-light" aria-hidden="true"></span>
+              <span class="theme-name">Light</span>
+            </button>
+            <button type="button" class="theme-card" role="radio" data-value="dark" aria-checked="false">
+              <span class="swatch swatch-dark" aria-hidden="true"></span>
+              <span class="theme-name">Dark</span>
+            </button>
+            <button type="button" class="theme-card" role="radio" data-value="dimmed" aria-checked="false">
+              <span class="swatch swatch-dimmed" aria-hidden="true"></span>
+              <span class="theme-name">Dimmed</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="opts-row">
+          <span class="opts-label" id="width-label">Content width</span>
+          <div class="width-group" role="radiogroup" aria-labelledby="width-label" id="width-group">
+            <button type="button" class="width-stop" role="radio" data-value="narrow" aria-checked="false">
+              <span class="width-bar" style="--w: 40%" aria-hidden="true"></span>1000
+            </button>
+            <button type="button" class="width-stop" role="radio" data-value="medium" aria-checked="false">
+              <span class="width-bar" style="--w: 55%" aria-hidden="true"></span>1200
+            </button>
+            <button type="button" class="width-stop" role="radio" data-value="wide" aria-checked="false">
+              <span class="width-bar" style="--w: 70%" aria-hidden="true"></span>1400
+            </button>
+            <button type="button" class="width-stop" role="radio" data-value="xlarge" aria-checked="false">
+              <span class="width-bar" style="--w: 85%" aria-hidden="true"></span>1600
+            </button>
+            <button type="button" class="width-stop" role="radio" data-value="full" aria-checked="false">
+              <span class="width-bar" style="--w: 100%" aria-hidden="true"></span>Full
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="opts-group" aria-labelledby="h-code">
+        <h2 id="h-code">Syntax highlighting</h2>
+
+        <div class="opts-row">
+          <label class="opts-label" for="prism-light">Light pages · Prism theme</label>
+          <select id="prism-light" class="opts-select"></select>
+        </div>
+        <div class="opts-row">
+          <label class="opts-label" for="prism-dark">Dark pages · Prism theme</label>
+          <select id="prism-dark" class="opts-select"></select>
+        </div>
+        <div class="opts-row">
+          <label class="opts-label" for="code-font">Code font</label>
+          <input id="code-font" class="opts-input" list="code-fonts" spellcheck="false"
+                 placeholder="Default (GitHub mono stack)" />
+          <datalist id="code-fonts">
+            <option value="JetBrains Mono"></option>
+            <option value="Fira Code"></option>
+            <option value="Cascadia Code"></option>
+            <option value="Source Code Pro"></option>
+            <option value="Consolas"></option>
+            <option value="Menlo"></option>
+            <option value="monospace"></option>
+          </datalist>
+        </div>
+
+        <div class="sample">
+          <div class="sample-caption">Preview (uses the Prism theme for the current theme side)</div>
+          <article class="markdown-body sample-body">
+            <pre><code class="language-python">from dataclasses import dataclass
+
+
+@dataclass
+class Viewer:
+    name: str = "md-viewer"
+    themes: int = 4
+
+    def render(self, source: str) -> str:
+        """Render markdown into a reading view."""
+        if not source:
+            raise ValueError("empty document")
+        return f"&lt;article&gt;{source}&lt;/article&gt;"</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="opts-group" aria-labelledby="h-font">
+        <h2 id="h-font">Fonts</h2>
+
+        <div class="opts-row">
+          <label class="opts-label" for="body-font">Body font</label>
+          <input id="body-font" class="opts-input" list="body-fonts" spellcheck="false"
+                 placeholder="Default (GitHub body stack)" />
+          <datalist id="body-fonts">
+            <option value="system-ui"></option>
+            <option value="'Segoe UI', 'Microsoft YaHei', sans-serif"></option>
+            <option value="'Noto Sans SC', sans-serif"></option>
+            <option value="Georgia, 'Times New Roman', serif"></option>
+          </datalist>
+        </div>
+
+        <p class="markdown-body font-sample">
+          The quick brown fox jumps over the lazy dog.
+          Markdown renders <em>italics</em>, <strong>bold</strong> and <code>inline code</code>.
+        </p>
+      </section>
+    </main>
+
+    <script src="options.js" defer></script>
+  </body>
+</html>

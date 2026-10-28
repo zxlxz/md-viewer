@@ -1,0 +1,43 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+A Chrome extension (Manifest V3) that renders Markdown files in the browser instead of showing plain text. TypeScript + npm + esbuild: `npm install`, then `npm run build` produces the loadable extension in `dist/` ("Load unpacked" → `dist/`). Runtime dependencies (all from npm): `marked` (markdown parsing), `prismjs` (code highlighting), `pele` (Obsidian's mermaid renderer; `await`-less `render(code)` returns `{ svg, ... }`). There is no theme option in pele.
+
+## Build & verification
+
+```
+npm run build        # bundle src/*.ts → dist/ + copy css/, manifest, options.html
+npm run watch        # same, rebuild on change
+npm run typecheck    # tsc --noEmit
+npm run gen:prism    # regenerate dist/css/prism.css only (build.mjs --prism-only, no network)
+```
+
+There are no tests or lint config. Checks that exist: `npm run typecheck`, `npm run build` (esbuild fails on unresolved imports), and grep-level smoke checks against `dist/`. For functional checks, load the real bundles in a `vm` sandbox with `sandbox.window = sandbox.self = sandbox` (stub `document.getElementsByTagName`/`currentScript`, `Element`/`customElements`/`MutationObserver` for pele, and a no-op `chrome.storage` — without `chrome` the settings listener rejects asynchronously after the checks pass) and confirm `marked.parse` output classes (`language-mermaid` etc.) and `Prism.languages` registration. pele is browser-only and can't be exercised in Node.
+
+Manual testing: load `dist/` unpacked in `chrome://extensions`; local `file://` files additionally need "Allow access to file URLs" in the extension's details page. The root `manifest.json` is the source of truth; `build.mjs` copies it, `css/` and `src/options.html` into `dist/` after every build.
+
+## Architecture
+
+The rendering pipeline crosses three files and only works as a unit:
+
+1. **`src/detect.ts`** (content script, `document_idle`) runs on `file:///*` and http(s) `*.md`/`*.markdown` URLs. It renders **only when `document.contentType` starts with `text/`** — this is what keeps GitHub blob views and other HTML pages with `.md` in the path untouched. It then asks the background worker to take over.
+2. **`src/background.ts`** (service worker) receives that message and uses `chrome.scripting.insertCSS` + `executeScript` to inject, in order: `katex/katex.min.css`, `css/github-markdown.css`, `css/app.css`, `css/prism.css`, `app.js`. The app bundle carries marked, Prism, pele and KaTeX itself; the KaTeX stylesheet is injected from `dist/katex/` (woff2 fonts only, copied there by `build.mjs` — their `url()` paths resolve against the extension root).
+3. **`src/app.ts`** runs in the content-script isolated world. It reads the raw text from `document.body.innerText` *before* wiping the document (this preserves the page URL, so relative image/link paths in the markdown still resolve). Then: marked parse (with `marked-katex-extension` registered — `$…$`/`$$…$$` become KaTeX HTML at parse time) → strip `script/iframe/object/embed/link/meta` → GitHub-style heading slugs → `katex.renderToString` for `code.language-math` fences → `peleRender()` for `code.language-mermaid` fences → `Prism.highlightAllUnder`. Prism language components are plain side-effect imports listed in dependency order in this file (`prism-markdown` among them powers the source view; add a language by adding one import); they rely on prism core setting `globalThis.Prism` when bundled.
+
+Re-entrancy guards: `window.__mdViewerRequested` (detect.ts) and `window.__mdViewerRendered` (app.ts) — declared via `declare global`. Each navigation gets a fresh isolated world, so the guards protect against duplicate injection into one document (repeat message delivery, not repeat navigation).
+
+## Styling
+
+GitHub (Primer) palette. `css/app.css` defines the UI-chrome design tokens as `--md-*` variables; the theme attribute on `<html>` is `data-md-theme="system|light|dark|dimmed"`, set by app.ts from `src/settings.ts` (persisted in `chrome.storage.sync`, falling back to `local`; permission `storage`). Light rules sit on `:root`/`html[data-md-theme="light"]`, dark on `html[data-md-theme="dark"]`, dimmed (GitHub "Dark Dimmed") on `html[data-md-theme="dimmed"]`, and the system-following copy on `html[data-md-theme="system"]` inside `@media (prefers-color-scheme: dark)`; each block also sets `color-scheme`.
+
+The article content is styled by **`dist/css/github-markdown.css`, generated, never committed** (`build.mjs` scopes the light/dark/dark-dimmed variants of the `github-markdown-css` package to `html[data-md-theme=...]`; system takes light plain plus dark inside `@media (prefers-color-scheme: dark)`, mirroring the token blocks, which must come later for cascade order). `css/app.css` therefore owns only layout, the UI chrome (topbar, outline, settings, source view) and user width/font overrides — never article element styles (headings, tables, code blocks…).
+
+`dist/css/prism.css` is **generated, never committed** (`build.mjs`; every `npm run build` regenerates it straight into dist — theme CSS is read from the installed `prismjs` package, no network — and falls back to the previous build's copy if those files can't be read. The committed `src/prism-themes.json` is the single source of truth for the theme list: `build.mjs` imports it directly and `settings.ts` re-exports it typed (`PrismThemeInfo`) for the options page; `npm run gen:prism` (`build.mjs --prism-only`) regenerates the css alone and fails loudly): the theme list resolves each id against the official `prismjs` themes first, then the `prism-themes` community package, every selector scoped to `html[data-md-prism="<id>"]`. app.ts resolves the active one — `prismLight` for light pages, `prismDark` for dark/dimmed pages, resolved through `matchMedia` when following the system — and sets the attribute. Content width is a `--md-max-width` variable set inline on the article; user fonts are `--md-font` / `--md-code-font` inline variables (sanitized by `safeFontValue`), and the code-font rule in app.css out-specifies the hardcoded `font-family` inside Prism themes.
+
+The **options page** (`src/options.html` + `options.ts`, `css/options.css`, `manifest.json` `options_ui`) shares the viewer's css files so its samples are pixel-true; it reuses `settings.ts` and saves on every change (no save button). The gear popover (bottom-right) keeps quick theme/width buttons and links to it.
+
+The **top-left corner** (`#md-viewer-topleft`) holds the outline toggle (list icon, `aria-expanded` tracks state) — it **hides while the outline is open**, since the panel's own header X closes it. The **top-right corner** (`#md-viewer-topbar`) holds two frosted round buttons: a light/dark flip (sun/moon octicons; clicking lands on the explicit theme opposite the currently *effective* side, so system/dimmed resolve to plain light or dark) and a source/render toggle — the latter swaps the article for `#md-viewer-source` (a `language-markdown` `<pre>` of the raw text, Prism-highlighted lazily on first reveal; session-only, not persisted). The outline is a **docked left column** (`<aside id="md-viewer-toc">`, full height, header "Outline" + close X, `.open` class + `aria-hidden`), open unless the user closed it (`toc` setting: `open`/`closed`); when open, `body:has(#md-viewer-toc.open) #md-viewer` gains `margin-left: var(--md-toc-width)` so the article re-centers in the remaining space (overlay-only under 900px, and print forces margin 0). Its width is the `tocWidth` setting (180–480px, default 280), applied as `--md-toc-width` on `<html>` and adjustable by dragging the panel's right edge (`.md-toc-resize` handle with pointer capture, double-click resets, persisted on pointer-up). It is built by `buildToc()` **after** heading slugs are assigned (it links via those ids) as a **flat hierarchical list** — one indented row per heading (`paddingLeft = 10 + (level-1)*14`), h1 rows bold, no collapse controls, matching github.com's Outline. Scroll-spy (`highlightTocEntry`, rAF-throttled on scroll, active = last heading with `top <= 90px`) marks the current section; the menu button hides entirely if the document has no headings. The panel overlays the article — no reflow; it closes on `Esc`, the header X, and on entry click only under 900px.
+The **bottom-right column** (`#md-viewer-controls`) stacks the goto-top button (`#md-viewer-top-btn`, hidden until `scrollY > 400`) above the gear popover (quick theme/width buttons + link to the options page).

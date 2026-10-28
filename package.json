@@ -1,0 +1,34 @@
+{
+  "name": "md-viewer",
+  "version": "1.0.0",
+  "description": "A Chrome extension that renders Markdown files in the browser instead of showing them as plain text.",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "gen:prism": "node build.mjs --prism-only"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "github-markdown-css": "^5.9.0",
+    "katex": "^0.18.11",
+    "marked": "^18.1.2",
+    "marked-katex-extension": "^5.1.13",
+    "pele": "^1.12.0",
+    "prism-themes": "^1.9.0",
+    "prismjs": "^1.30.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/prismjs": "^1.26.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "private": true
+}

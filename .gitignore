@@ -1,0 +1,11 @@
+# build
+node_modules/
+dist/
+
+# test
+data/
+temp/
+
+# files
+*.pem
+*.crx

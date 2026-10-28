@@ -1,0 +1,10 @@
+[
+  { "id": "default", "name": "Prism Light", "dark": false },
+  { "id": "dark", "name": "Prism Dark", "dark": true },
+  { "id": "one-light", "name": "One Light", "dark": false },
+  { "id": "one-dark", "name": "One Dark", "dark": true },
+  { "id": "material-light", "name": "Material Light", "dark": false },
+  { "id": "material-dark", "name": "Material Dark", "dark": true },
+  { "id": "gruvbox-light", "name": "Gruvbox Light", "dark": false },
+  { "id": "gruvbox-dark", "name": "Gruvbox Dark", "dark": true }
+]

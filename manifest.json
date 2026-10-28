@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "md-viewer",
+  "version": "1.0.0",
+  "description": "Render Markdown files (.md) opened in the browser: marked.js for markup, Prism.js for code, pele for Mermaid diagrams.",
+  "minimum_chrome_version": "102",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["scripting", "storage"],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "host_permissions": [
+    "file:///*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "file:///*",
+        "http://*/*.md",
+        "https://*/*.md",
+        "http://*/*.markdown",
+        "https://*/*.markdown"
+      ],
+      "js": ["detect.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
