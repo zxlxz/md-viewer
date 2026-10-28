@@ -476,12 +476,21 @@ marked.use(markedKatex({ nonStandard: true, throwOnError: false }));
   /* Scroll spy: mark the last heading above the viewport top as active. */
   function highlightTocEntry() {
     if (!tocPanel || !tocPanel.classList.contains('open') || sourceMode) return;
+    const items = Array.from(
+      tocPanel.querySelectorAll<HTMLElement>('.md-toc-item')
+    );
+    const scrollHeight = document.documentElement.scrollHeight;
+    const atBottom =
+      scrollHeight > window.innerHeight &&
+      Math.ceil(window.scrollY + window.innerHeight) >= scrollHeight;
     let current: HTMLElement | null = null;
-    for (const item of tocPanel.querySelectorAll<HTMLElement>('.md-toc-item')) {
+    for (const item of items) {
       item.classList.remove('active');
       const el = document.getElementById(item.dataset.target || '');
-      if (el && el.getBoundingClientRect().top <= 90) current = item;
+      if (el && !atBottom && el.getBoundingClientRect().top <= 90) current = item;
     }
+    // At max scroll, the last heading may never reach the activation line.
+    if (atBottom) current = items[items.length - 1] || null;
     if (current) {
       current.classList.add('active');
       const r = current.getBoundingClientRect();
@@ -588,6 +597,17 @@ marked.use(markedKatex({ nonStandard: true, throwOnError: false }));
         figure.textContent =
           'Mermaid render failed: ' + (err instanceof Error ? err.message : err);
       }
+    }
+
+    // ```html fences -> embedded verbatim (before highlighting, so Prism
+    // never sees them; markup aliases html). The source goes into the
+    // document exactly as written — no wrapper, no filtering.
+    for (const code of article.querySelectorAll('code.language-html')) {
+      const src = code.textContent || '';
+      const holder = code.closest('pre') || code;
+      const tpl = document.createElement('template');
+      tpl.innerHTML = src;
+      holder.replaceWith(...tpl.content.childNodes);
     }
 
     Prism.highlightAllUnder(article);

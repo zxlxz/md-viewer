@@ -186,8 +186,7 @@ const copyStatic = {
       fs.cpSync('css', 'dist/css', { recursive: true });
       fs.cpSync('manifest.json', 'dist/manifest.json');
       fs.cpSync('src/options.html', 'dist/options.html');
-      // KaTeX stylesheet + woff2 fonts (Chrome only fetches woff2, so the
-      // woff/ttf half of katex's font set is skipped).
+      // KaTeX stylesheet + all font formats referenced by its CSS fallbacks.
       const katexDist = 'node_modules/katex/dist';
       fs.cpSync(
         path.join(katexDist, 'katex.min.css'),
@@ -195,14 +194,6 @@ const copyStatic = {
       );
       fs.cpSync(path.join(katexDist, 'fonts'), 'dist/katex/fonts', {
         recursive: true,
-        filter: (file) => {
-          try {
-            if (fs.statSync(file).isDirectory()) return true;
-          } catch {
-            /* unreadable entry — skip it */
-          }
-          return file.endsWith('.woff2');
-        },
       });
     });
   },

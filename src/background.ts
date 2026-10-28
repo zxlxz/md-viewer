@@ -6,6 +6,24 @@ type Message =
   | { type: 'md-viewer:render' }
   | { type: 'md-viewer:options' };
 
+async function insertKatexStylesheet(tabId: number) {
+  const response = await fetch(chrome.runtime.getURL('katex/katex.min.css'));
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load KaTeX stylesheet: ${response.status} ${response.statusText}`
+    );
+  }
+  const fontBase = chrome.runtime.getURL('katex/fonts/');
+  const css = (await response.text()).replace(
+    /url\((['"]?)fonts\//g,
+    (_match, quote: string) => `url(${quote}${fontBase}`
+  );
+  await chrome.scripting.insertCSS({
+    target: { tabId },
+    css,
+  });
+}
+
 chrome.runtime.onMessage.addListener((msg: unknown, sender) => {
   const type = (msg as Partial<Message> | undefined)?.type;
 
@@ -21,10 +39,10 @@ chrome.runtime.onMessage.addListener((msg: unknown, sender) => {
   const tabId = sender.tab.id;
   (async () => {
     try {
+      await insertKatexStylesheet(tabId);
       await chrome.scripting.insertCSS({
         target: { tabId },
         files: [
-          'katex/katex.min.css',
           'css/github-markdown.css',
           'css/app.css',
           'css/prism.css',

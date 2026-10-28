@@ -29,5 +29,11 @@
       "js": ["detect.js"],
       "run_at": "document_idle"
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["katex/fonts/*"],
+      "matches": ["file:///*", "http://*/*", "https://*/*"]
+    }
   ]
 }

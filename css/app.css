@@ -11,73 +11,80 @@
 :root {
   color-scheme: light;
 
-  --md-canvas: #ffffff;
-  --md-fg: #1f2328;
-  --md-muted: #59636e;
-  --md-border: #d1d9e0;
-  --md-accent: #0969da;
-  --md-accent-emphasis: #0969da;
-  --md-accent-subtle: #ddf4ff;
-  --md-code-bg: rgba(129, 139, 152, 0.12);
-  --md-pre-bg: #f6f8fa;
-  --md-danger: #d1242f;
+  --md-canvas: #f8fafc;
+  --md-paper: #ffffff;
+  --md-fg: #1f2937;
+  --md-muted: #4b5563;
+  --md-border: #e2e8f0;
+  --md-accent: #1e3a8a;
+  --md-accent-emphasis: #0f766e;
+  --md-accent-subtle: #eff6ff;
+  --md-code-bg: #f1f5f9;
+  --md-pre-bg: #f1f5f9;
+  --md-danger: #b91c1c;
 
-  --md-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
-    Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --md-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  --md-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", sans-serif;
+  --md-font-mono: "Fira Code", Consolas, Monaco, "Andale Mono", monospace;
 }
 
 html[data-md-theme="dark"] {
   color-scheme: dark;
 
-  --md-canvas: #0d1117;
-  --md-fg: #e6edf3;
-  --md-muted: #9198a1;
-  --md-border: #3d444d;
-  --md-accent: #4493f8;
-  --md-accent-emphasis: #1f6feb;
-  --md-accent-subtle: rgba(56, 139, 253, 0.1);
-  --md-code-bg: rgba(101, 108, 118, 0.2);
-  --md-pre-bg: #151b23;
-  --md-danger: #f85149;
+  --md-canvas: #0f172a;
+  --md-paper: #111c31;
+  --md-fg: #e2e8f0;
+  --md-muted: #94a3b8;
+  --md-border: #334155;
+  --md-accent: #93c5fd;
+  --md-accent-emphasis: #2dd4bf;
+  --md-accent-subtle: rgba(59, 130, 246, 0.14);
+  --md-code-bg: rgba(148, 163, 184, 0.16);
+  --md-pre-bg: #172338;
+  --md-danger: #f87171;
 }
 
 /* GitHub's "Dark Dimmed" (Primer dark_dimmed primitives). */
 html[data-md-theme="dimmed"] {
   color-scheme: dark;
 
-  --md-canvas: #22272e;
-  --md-fg: #cdd9e5;
-  --md-muted: #9ea7b3;
-  --md-border: #444c56;
-  --md-accent: #539bf5;
-  --md-accent-emphasis: #316dca;
-  --md-accent-subtle: rgba(84, 150, 253, 0.1);
-  --md-code-bg: rgba(101, 108, 118, 0.2);
-  --md-pre-bg: #2d333b;
-  --md-danger: #f47067;
+  --md-canvas: #1e293b;
+  --md-paper: #263449;
+  --md-fg: #e2e8f0;
+  --md-muted: #a3b2c7;
+  --md-border: #40516a;
+  --md-accent: #93c5fd;
+  --md-accent-emphasis: #5eead4;
+  --md-accent-subtle: rgba(96, 165, 250, 0.14);
+  --md-code-bg: rgba(148, 163, 184, 0.16);
+  --md-pre-bg: #2b3a51;
+  --md-danger: #fca5a5;
 }
 
 @media (prefers-color-scheme: dark) {
   html[data-md-theme="system"] {
     color-scheme: dark;
 
-    --md-canvas: #0d1117;
-    --md-fg: #e6edf3;
-    --md-muted: #9198a1;
-    --md-border: #3d444d;
-    --md-accent: #4493f8;
-    --md-accent-emphasis: #1f6feb;
-    --md-accent-subtle: rgba(56, 139, 253, 0.1);
-    --md-code-bg: rgba(101, 108, 118, 0.2);
-    --md-pre-bg: #151b23;
-    --md-danger: #f85149;
+    --md-canvas: #0f172a;
+    --md-paper: #111c31;
+    --md-fg: #e2e8f0;
+    --md-muted: #94a3b8;
+    --md-border: #334155;
+    --md-accent: #93c5fd;
+    --md-accent-emphasis: #2dd4bf;
+    --md-accent-subtle: rgba(59, 130, 246, 0.14);
+    --md-code-bg: rgba(148, 163, 184, 0.16);
+    --md-pre-bg: #172338;
+    --md-danger: #f87171;
   }
 }
 
 html {
-  background: var(--md-canvas);
+  min-height: 100%;
+  background:
+    radial-gradient(ellipse at 12% 0, color-mix(in srgb, var(--md-accent-subtle) 72%, transparent), transparent 34rem),
+    var(--md-canvas);
   scroll-behavior: smooth;
 }
 
@@ -92,7 +99,9 @@ html {
 
 #md-viewer {
   margin: 0;
-  padding: 2rem 1rem 5rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 4.5rem 2rem 5rem;
   display: flex;
   justify-content: center;
 }
@@ -103,7 +112,17 @@ html {
   width: 100%;
   max-width: var(--md-max-width, 1012px);
   font-family: var(--md-font, var(--md-font-body));
+  line-height: 1.7;
   word-wrap: break-word;
+}
+
+#md-viewer > .markdown-body {
+  box-sizing: border-box;
+  padding: 44px 56px 56px;
+  border: 1px solid var(--md-border);
+  border-radius: 14px;
+  background: var(--md-paper);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.07);
   animation: md-rise 0.3s ease-out;
 }
 
@@ -217,11 +236,11 @@ html {
   padding: 0;
   border: 1px solid var(--md-border);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--md-canvas) 82%, transparent);
+  background: color-mix(in srgb, var(--md-paper) 86%, transparent);
   -webkit-backdrop-filter: blur(10px) saturate(1.5);
   backdrop-filter: blur(10px) saturate(1.5);
   color: var(--md-muted);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
   cursor: pointer;
   transition: color 0.15s ease, border-color 0.15s ease,
     background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
@@ -260,10 +279,10 @@ html {
   min-width: 190px;
   padding: 12px;
   border: 1px solid var(--md-border);
-  border-radius: 8px;
-  background: var(--md-canvas);
+  border-radius: 12px;
+  background: var(--md-paper);
   color: var(--md-fg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.2);
 }
 
 /* ---------- outline (docked left column, resizable) ---------- */
@@ -278,10 +297,11 @@ html {
   flex-direction: column;
   width: var(--md-toc-width, 280px);
   border-right: 1px solid var(--md-border);
-  background: var(--md-canvas);
+  background: var(--md-paper);
   color: var(--md-fg);
   font-family: var(--md-font-body);
   font-size: 13px;
+  box-shadow: 8px 0 28px rgba(15, 23, 42, 0.06);
   visibility: hidden;
   opacity: 0;
   transition: opacity 0.15s ease, visibility 0s linear 0.15s;
@@ -344,10 +364,12 @@ body.md-toc-resizing {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 8px 8px 16px;
+  padding: 14px 12px 14px 20px;
   border-bottom: 1px solid var(--md-border);
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--md-muted);
 }
 
@@ -398,6 +420,7 @@ body.md-toc-resizing {
   border-radius: 6px;
   color: var(--md-fg);
   text-decoration: none;
+  font-size: 0.9rem;
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -414,6 +437,7 @@ body.md-toc-resizing {
   background: var(--md-accent-subtle);
   color: var(--md-accent);
   font-weight: 600;
+  box-shadow: inset 3px 0 var(--md-accent-emphasis);
 }
 
 .md-toc-top {
@@ -549,6 +573,27 @@ body.md-toc-resizing {
   }
 }
 
+@media (max-width: 700px) {
+  #md-viewer {
+    padding: 4rem 1rem 5rem;
+  }
+
+  #md-viewer > .markdown-body {
+    padding: 28px 24px 36px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  #md-viewer {
+    padding: 3.75rem 0.65rem 4rem;
+  }
+
+  #md-viewer > .markdown-body {
+    padding: 22px 18px 28px;
+  }
+}
+
 /* ---------- print ---------- */
 
 @media print {
@@ -562,9 +607,13 @@ body.md-toc-resizing {
   #md-viewer-toc {
     display: none;
   }
-  .markdown-body {
+  #md-viewer > .markdown-body {
     animation: none;
     max-width: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
   .markdown-body pre,
   .markdown-body blockquote,
@@ -581,4 +630,160 @@ html[data-md-prism] .markdown-body code[class*="language-"],
 html[data-md-prism] .markdown-body pre code,
 html[data-md-prism] .markdown-body code {
   font-family: var(--md-code-font, var(--md-font-mono));
+}
+
+/* ---------- article restyle: doc-reference look, light pages only ---------
+ * Matches the reference doc style (blue section headings with a pale
+ * underline, callout blockquotes, striped tables, tinted red inline code,
+ * bordered code blocks). The reference is light-only, so dark/dimmed keep
+ * the stock github-markdown.css look. Two identical blocks — explicit light
+ * and system-following-light — must stay in sync (same pattern as the token
+ * blocks at the top). Selectors carry the theme attribute to tie with the
+ * generated github-markdown.css specificity; this file is injected after it
+ * (and before prism.css — hence the [class*=language-] tie-breaker on pre). */
+
+html[data-md-theme="light"] .markdown-body h1,
+html[data-md-theme="light"] .markdown-body h2 {
+  color: var(--md-accent);
+  border-bottom: 2px solid var(--md-accent-subtle);
+}
+html[data-md-theme="light"] .markdown-body h1 {
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+html[data-md-theme="light"] .markdown-body h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+html[data-md-theme="light"] .markdown-body h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+html[data-md-theme="light"] .markdown-body h4 {
+  font-size: 1.1rem;
+  color: #334155;
+}
+html[data-md-theme="light"] .markdown-body blockquote {
+  margin: 0 0 16px;
+  padding: 16px 20px;
+  color: var(--md-fg);
+  background: var(--md-accent-subtle);
+  border-left: 4px solid #3b82f6;
+  border-radius: 0 8px 8px 0;
+}
+html[data-md-theme="light"] .markdown-body p code,
+html[data-md-theme="light"] .markdown-body li code,
+html[data-md-theme="light"] .markdown-body td code {
+  background-color: var(--md-code-bg);
+  color: var(--md-danger);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+html[data-md-theme="light"] .markdown-body table {
+  width: 100%;
+  font-size: 0.95rem;
+  border: 1px solid var(--md-border);
+}
+html[data-md-theme="light"] .markdown-body th {
+  background: var(--md-code-bg);
+  color: #334155;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--md-border);
+}
+html[data-md-theme="light"] .markdown-body td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--md-border);
+}
+html[data-md-theme="light"] .markdown-body tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+html[data-md-theme="light"] .markdown-body tbody tr:hover {
+  background: #f0fdf4;
+}
+html[data-md-theme="light"] .markdown-body pre,
+html[data-md-theme="light"] .markdown-body pre[class*="language-"] {
+  margin: 18px 0;
+  border: 1px solid var(--md-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-size: 0.9rem;
+}
+
+@media (prefers-color-scheme: light) {
+  html[data-md-theme="system"] .markdown-body h1,
+  html[data-md-theme="system"] .markdown-body h2 {
+    color: var(--md-accent);
+    border-bottom: 2px solid var(--md-accent-subtle);
+  }
+  html[data-md-theme="system"] .markdown-body h1 {
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  html[data-md-theme="system"] .markdown-body h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  html[data-md-theme="system"] .markdown-body h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  html[data-md-theme="system"] .markdown-body h4 {
+    font-size: 1.1rem;
+    color: #334155;
+  }
+  html[data-md-theme="system"] .markdown-body blockquote {
+    margin: 0 0 16px;
+    padding: 16px 20px;
+    color: var(--md-fg);
+    background: var(--md-accent-subtle);
+    border-left: 4px solid #3b82f6;
+    border-radius: 0 8px 8px 0;
+  }
+  html[data-md-theme="system"] .markdown-body p code,
+  html[data-md-theme="system"] .markdown-body li code,
+  html[data-md-theme="system"] .markdown-body td code {
+    background-color: var(--md-code-bg);
+    color: var(--md-danger);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  html[data-md-theme="system"] .markdown-body table {
+    width: 100%;
+    font-size: 0.95rem;
+    border: 1px solid var(--md-border);
+  }
+  html[data-md-theme="system"] .markdown-body th {
+    background: var(--md-code-bg);
+    color: #334155;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--md-border);
+  }
+  html[data-md-theme="system"] .markdown-body td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--md-border);
+  }
+  html[data-md-theme="system"] .markdown-body tbody tr:nth-child(even) {
+    background: #fafbfc;
+  }
+  html[data-md-theme="system"] .markdown-body tbody tr:hover {
+    background: #f0fdf4;
+  }
+  html[data-md-theme="system"] .markdown-body pre,
+  html[data-md-theme="system"] .markdown-body pre[class*="language-"] {
+    margin: 18px 0;
+    border: 1px solid var(--md-border);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    font-size: 0.9rem;
+  }
 }
