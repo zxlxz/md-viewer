@@ -158,6 +158,7 @@ html {
 /* ---------- mermaid (pele output; not covered by github-markdown-css) ---- */
 
 .markdown-body .mermaid-block {
+  position: relative;
   margin: 1.5em 0;
   padding: 1em;
   text-align: center;
@@ -554,6 +555,124 @@ body.md-toc-resizing {
 #md-viewer-source ::-webkit-scrollbar-thumb {
   background: var(--md-border);
   border-radius: 4px;
+}
+
+/* ---------- wide-diagram viewer (mermaid) ----------------------------------
+ * Article SVGs are capped at the column width (`.mermaid-block svg
+ * { max-width: 100% }`); the hover-revealed expand button opens a zoomable
+ * full-screen viewer instead. */
+
+.md-svg-expand {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--md-border);
+  border-radius: 50%;
+  background: var(--md-paper);
+  color: var(--md-muted);
+  cursor: zoom-in;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.markdown-body .mermaid-block:hover .md-svg-expand,
+.markdown-body .mermaid-block .md-svg-expand:focus-visible {
+  opacity: 1;
+}
+
+.md-svg-expand:hover {
+  color: var(--md-accent);
+}
+
+/* Touch devices have no hover — keep the button always visible there. */
+@media (hover: none) {
+  .md-svg-expand {
+    opacity: 1;
+  }
+}
+
+#md-viewer-svg-view {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+#md-viewer-svg-view[hidden] {
+  display: none !important;
+}
+
+.md-svg-stage {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  display: flex;
+  padding: 24px;
+  cursor: grab;
+}
+
+.md-svg-stage.panning {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.md-svg-stage > svg {
+  margin: auto;
+  background: var(--md-paper);
+  border-radius: 8px;
+}
+
+.md-svg-toolbar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--md-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--md-paper) 86%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
+}
+
+.md-svg-toolbar button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--md-fg);
+  font: 600 14px/1 var(--md-font-body);
+  cursor: pointer;
+}
+
+.md-svg-toolbar button:hover {
+  background: var(--md-code-bg);
+  color: var(--md-accent);
+}
+
+.md-svg-toolbar .md-svg-zoom-label {
+  width: auto;
+  min-width: 52px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media print {
+  #md-viewer-svg-view {
+    display: none !important;
+  }
 }
 
 /* ---------- reduced motion ---------- */

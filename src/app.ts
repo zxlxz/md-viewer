@@ -199,6 +199,10 @@ marked.use(markedKatex({ nonStandard: true, throwOnError: false }));
     '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">' +
     '<path d="M3.47 7.78a.75.75 0 0 1 0-1.06l4-4a.75.75 0 0 1 1.06 0l4 4a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018L8.75 4.81v7.44a.75.75 0 0 1-1.5 0V4.81L4.53 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Z"/>' +
     '</svg>';
+  const EXPAND_ICON =
+    '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">' +
+    '<path d="M2.75 1h2.5a.75.75 0 0 1 0 1.5h-2.5a.25.25 0 0 0-.25.25v2.5a.75.75 0 0 1-1.5 0v-2.5C1 1.784 1.784 1 2.75 1Zm8 0h2.5c.966 0 1.75.784 1.75 1.75v2.5a.75.75 0 0 1-1.5 0v-2.5a.25.25 0 0 0-.25-.25h-2.5a.75.75 0 0 1 0-1.5ZM2.75 13.5h2.5a.75.75 0 0 1 0 1.5h-2.5A1.75 1.75 0 0 1 1 13.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25Zm9.5 0a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 15h-2.5a.75.75 0 0 1 0-1.5h2.5ZM8 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/>' +
+    '</svg>';
   const X_ICON =
     '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">' +
     '<path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/>' +
@@ -517,6 +521,171 @@ marked.use(markedKatex({ nonStandard: true, throwOnError: false }));
     });
   }
 
+  /* ---------- wide-diagram viewer (mermaid blocks) ----------
+   * Article SVGs are capped at the column width, so wide diagrams render
+   * unreadably small. The hover-revealed expand button opens a full-screen
+   * viewer with wheel zoom (cursor-anchored), drag pan and −/reset/+. */
+
+  let svgView: {
+    overlay: HTMLDivElement;
+    stage: HTMLDivElement;
+    zoomLabel: HTMLButtonElement;
+    svg: SVGSVGElement | null;
+    natural: number;
+    zoom: number;
+  } | null = null;
+
+  function svgViewZoomTo(next: number, ax?: number, ay?: number) {
+    if (!svgView || !svgView.svg) return;
+    const v = svgView;
+    const svg = v.svg;
+    if (!svg) return;
+    const zoom = Math.min(10, Math.max(0.1, next));
+    const stage = v.stage;
+    const r = stage.getBoundingClientRect();
+    const px = ax === undefined ? r.width / 2 : ax - r.left;
+    const py = ay === undefined ? r.height / 2 : ay - r.top;
+    const ratio = zoom / v.zoom;
+    v.zoom = zoom;
+    svg.style.width = v.natural * zoom + 'px';
+    // Keep the content point under the anchor (cursor or stage center)
+    // fixed while the size changes.
+    stage.scrollLeft = (stage.scrollLeft + px) * ratio - px;
+    stage.scrollTop = (stage.scrollTop + py) * ratio - py;
+    v.zoomLabel.textContent = Math.round(zoom * 100) + '%';
+  }
+
+  function buildSvgViewer() {
+    const overlay = document.createElement('div');
+    overlay.id = 'md-viewer-svg-view';
+    overlay.hidden = true;
+    const stage = document.createElement('div');
+    stage.className = 'md-svg-stage';
+    const toolbar = document.createElement('div');
+    toolbar.className = 'md-svg-toolbar';
+
+    const zoomOut = document.createElement('button');
+    zoomOut.type = 'button';
+    zoomOut.textContent = '−';
+    zoomOut.title = 'Zoom out';
+    zoomOut.setAttribute('aria-label', 'Zoom out');
+    const zoomLabel = document.createElement('button');
+    zoomLabel.type = 'button';
+    zoomLabel.className = 'md-svg-zoom-label';
+    zoomLabel.textContent = '100%';
+    zoomLabel.title = 'Reset zoom';
+    zoomLabel.setAttribute('aria-label', 'Reset zoom');
+    const zoomIn = document.createElement('button');
+    zoomIn.type = 'button';
+    zoomIn.textContent = '+';
+    zoomIn.title = 'Zoom in';
+    zoomIn.setAttribute('aria-label', 'Zoom in');
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.innerHTML = X_ICON;
+    close.title = 'Close';
+    close.setAttribute('aria-label', 'Close diagram viewer');
+    toolbar.append(zoomOut, zoomLabel, zoomIn, close);
+    overlay.append(stage, toolbar);
+    document.body.appendChild(overlay);
+
+    zoomOut.addEventListener('click', () => svgViewZoomTo(svgView!.zoom / 1.25));
+    zoomIn.addEventListener('click', () => svgViewZoomTo(svgView!.zoom * 1.25));
+    zoomLabel.addEventListener('click', () => svgViewZoomTo(1));
+    close.addEventListener('click', () => svgViewSetOpen(false));
+    // Click on empty stage closes — but not after a drag pan, and not when
+    // the click started on the diagram itself (pointer capture retargets
+    // the click to the stage).
+    let pan: { x: number; y: number; sl: number; st: number } | null = null;
+    let panMoved = false;
+    let downOnStage = false;
+    overlay.addEventListener('click', (e) => {
+      if (e.target === stage && downOnStage && !panMoved) svgViewSetOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !overlay.hidden) svgViewSetOpen(false);
+    });
+    // Wheel = zoom around the cursor.
+    stage.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        svgViewZoomTo(svgView!.zoom * (e.deltaY < 0 ? 1.2 : 1 / 1.2), e.clientX, e.clientY);
+      },
+      { passive: false }
+    );
+    stage.addEventListener('pointerdown', (e) => {
+      pan = { x: e.clientX, y: e.clientY, sl: stage.scrollLeft, st: stage.scrollTop };
+      downOnStage = e.target === stage;
+      panMoved = false;
+      stage.setPointerCapture(e.pointerId);
+      stage.classList.add('panning');
+      e.preventDefault();
+    });
+    stage.addEventListener('pointermove', (e) => {
+      if (!pan) return;
+      const dx = e.clientX - pan.x;
+      const dy = e.clientY - pan.y;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) panMoved = true;
+      stage.scrollLeft = pan.sl - dx;
+      stage.scrollTop = pan.st - dy;
+    });
+    const endPan = (e: PointerEvent) => {
+      pan = null;
+      stage.classList.remove('panning');
+      if (stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId);
+    };
+    stage.addEventListener('pointerup', endPan);
+    stage.addEventListener('pointercancel', endPan);
+
+    svgView = { overlay, stage, zoomLabel, svg: null, natural: 1, zoom: 1 };
+  }
+
+  function svgViewSetOpen(open: boolean) {
+    if (!svgView) return;
+    svgView.overlay.hidden = !open;
+  }
+
+  function openSvgViewer(source: SVGSVGElement | null) {
+    if (!source) return;
+    if (!svgView) buildSvgViewer();
+    const v = svgView!;
+    const clone = source.cloneNode(true) as SVGSVGElement;
+    // Mermaid caps the svg with a style max-width — the viewer shows the
+    // natural size (zoom drives width directly).
+    clone.style.maxWidth = 'none';
+    const vb = source.viewBox.baseVal;
+    v.natural =
+      vb.width ||
+      parseFloat(source.getAttribute('width') || '') ||
+      source.getBoundingClientRect().width ||
+      1200;
+    v.zoom = 1;
+    clone.style.width = v.natural + 'px';
+    clone.style.height = 'auto';
+    v.svg = clone;
+    v.stage.querySelectorAll('svg').forEach((s) => s.remove());
+    v.stage.appendChild(clone);
+    v.zoomLabel.textContent = '100%';
+    v.stage.scrollLeft = 0;
+    v.stage.scrollTop = 0;
+    v.overlay.hidden = false;
+  }
+
+  /* Hover-revealed expand button on rendered mermaid figures. */
+  function attachSvgExpand(figure: HTMLElement) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'md-svg-expand';
+    btn.title = 'View full size';
+    btn.setAttribute('aria-label', 'View diagram full size');
+    btn.innerHTML = EXPAND_ICON;
+    btn.addEventListener('click', () => {
+      openSvgViewer(figure.querySelector('svg') as SVGSVGElement | null);
+    });
+    figure.appendChild(btn);
+  }
+
   initSettings();
   buildControls();
 
@@ -592,6 +761,7 @@ marked.use(markedKatex({ nonStandard: true, throwOnError: false }));
       try {
         const result = peleRender(src);
         figure.innerHTML = result.svg;
+        attachSvgExpand(figure);
       } catch (err) {
         figure.classList.add('mermaid-error');
         figure.textContent =
