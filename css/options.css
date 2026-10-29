@@ -255,6 +255,23 @@ body {
   box-shadow: 0 0 0 2px var(--md-accent-subtle);
 }
 
+/* ----- checkbox toggle ----- */
+
+.opts-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  cursor: pointer;
+}
+
+.opts-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--md-accent);
+}
+
 /* ----- live samples ----- */
 
 .sample {

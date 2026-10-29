@@ -30,6 +30,8 @@ export interface MdSettings {
   font: string;
   /** Code font-family override; '' keeps the CSS default stack. */
   codeFont: string;
+  /** Show line numbers on highlighted code blocks (Prism line-numbers plugin). */
+  lineNumbers: boolean;
 }
 
 export const DEFAULTS: MdSettings = {
@@ -41,6 +43,7 @@ export const DEFAULTS: MdSettings = {
   prismDark: 'dark',
   font: '',
   codeFont: '',
+  lineNumbers: false,
 };
 
 const KEYS = Object.keys(DEFAULTS) as (keyof MdSettings)[];
@@ -69,6 +72,7 @@ function sanitize(raw: Record<string, unknown>): MdSettings {
   if (typeof raw.prismDark === 'string' && PRISM_IDS.has(raw.prismDark)) out.prismDark = raw.prismDark;
   if (typeof raw.font === 'string') out.font = raw.font;
   if (typeof raw.codeFont === 'string') out.codeFont = raw.codeFont;
+  if (typeof raw.lineNumbers === 'boolean') out.lineNumbers = raw.lineNumbers;
   return out;
 }
 

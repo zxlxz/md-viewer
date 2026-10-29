@@ -24,6 +24,7 @@ import 'prismjs/components/prism-c'; // extends clike (core)
 import 'prismjs/components/prism-cpp'; // extends c
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-json';
+import 'prismjs/plugins/line-numbers/prism-line-numbers'; // complete-hook based; needs pre.line-numbers + its css (in generated prism.css)
 
 declare global {
   interface Window {
@@ -115,7 +116,39 @@ marked.use(markedKatex({ nonStandard: true, throwOnError: false }));
     }
   }
 
+  /* Line numbers (Prism line-numbers plugin): the plugin's complete hook adds
+   * the number rows while highlighting, so the class must be on the <pre>
+   * first. Toggling after render re-highlights to add rows (the hook is
+   * idempotent — it aborts when rows already exist) or strips them. */
+  let lineNumbersShown: boolean | null = null;
+  function applyLineNumbers() {
+    const on = settings.lineNumbers;
+    if (lineNumbersShown === on) return;
+    lineNumbersShown = on;
+    for (const pre of Array.from(
+      document.querySelectorAll<HTMLPreElement>(
+        '#md-viewer article pre, #md-viewer-source pre'
+      )
+    )) {
+      if (on) {
+        pre.classList.add('line-numbers');
+        // Re-run the plugin's complete hook for already-highlighted blocks.
+        const code = pre.querySelector('code');
+        if (code && !code.querySelector('.line-numbers-rows')) {
+          Prism.highlightElement(code);
+        }
+      } else {
+        pre.classList.remove('line-numbers');
+        pre
+          .querySelectorAll('.line-numbers-rows, .line-numbers-sizer')
+          .forEach((el) => el.remove());
+      }
+    }
+  }
+
   function applySettings() {
+    applyLineNumbers();
+    document.documentElement.setAttribute('data-md-theme', settings.theme);
     document.documentElement.setAttribute('data-md-theme', settings.theme);
     document.documentElement.setAttribute('data-md-prism', resolvedPrism());
     // On the container so the article AND the source view resolve the var.

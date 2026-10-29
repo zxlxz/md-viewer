@@ -6,6 +6,7 @@ import 'prismjs/components/prism-c'; // extends clike (core)
 import 'prismjs/components/prism-cpp'; // extends c
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-json';
+import 'prismjs/plugins/line-numbers/prism-line-numbers'; // complete-hook based; needs pre.line-numbers + its css (in generated prism.css)
 import {
   DEFAULTS,
   loadSettings,
@@ -39,7 +40,23 @@ function apply() {
   };
   setOrClear('--md-font', settings.font);
   setOrClear('--md-code-font', settings.codeFont);
+  applySampleLineNumbers();
   syncControls();
+}
+
+/* The sample carries the class before highlight time (init highlights it
+ * after apply); toggling later re-highlights or strips the plugin's rows. */
+function applySampleLineNumbers() {
+  const pre = document.querySelector<HTMLElement>('.sample-body pre');
+  const code = pre?.querySelector('code');
+  if (!pre || !code) return;
+  if (settings.lineNumbers) {
+    pre.classList.add('line-numbers');
+    if (!code.querySelector('.line-numbers-rows')) Prism.highlightElement(code);
+  } else {
+    pre.classList.remove('line-numbers');
+    pre.querySelectorAll('.line-numbers-rows, .line-numbers-sizer').forEach((el) => el.remove());
+  }
 }
 
 /* ----- controls ----- */
@@ -62,6 +79,9 @@ function syncControls() {
   const codeFont = document.querySelector<HTMLInputElement>('#code-font');
   if (bodyFont && document.activeElement !== bodyFont) bodyFont.value = settings.font;
   if (codeFont && document.activeElement !== codeFont) codeFont.value = settings.codeFont;
+
+  const lineNumbers = document.querySelector<HTMLInputElement>('#line-numbers');
+  if (lineNumbers) lineNumbers.checked = settings.lineNumbers;
 }
 
 function fillPrismSelects() {
@@ -110,6 +130,12 @@ function wire() {
     settings.prismDark = (e.target as HTMLSelectElement).value;
     apply();
     void saveSetting('prismDark', settings.prismDark);
+  });
+
+  document.querySelector<HTMLInputElement>('#line-numbers')?.addEventListener('change', (e) => {
+    settings.lineNumbers = (e.target as HTMLInputElement).checked;
+    apply();
+    void saveSetting('lineNumbers', settings.lineNumbers);
   });
 
   // Font typing saves debounced per field (a shared timer could drop one

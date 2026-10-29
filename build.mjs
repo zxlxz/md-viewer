@@ -113,7 +113,26 @@ function generatePrismCss() {
         scopeTheme(css, `html[data-md-prism="${t.id}"] `)
     );
   }
+  parts.push('\n/* ===== line-numbers plugin (unscoped, theme-independent) ===== */\n' + pluginCss('line-numbers'));
   return parts.join('\n') + '\n';
+}
+
+/** The line-numbers plugin stylesheet (theme-independent, so it ships once,
+ * unscoped) plus one fix: our <pre> elements carry no language- class (marked
+ * puts it on <code>), while github-markdown.css out-specifies the plugin's
+ * padding selector — so widen it and force the gutter padding past it. */
+function pluginCss(id) {
+  return (
+    fs.readFileSync(
+      'node_modules/prismjs/plugins/' + id + '/prism-' + id + '.css',
+      'utf8'
+    ) +
+    '\n/* md-viewer fix: marked leaves <pre> without the language- class the\n' +
+    ' * plugin selectors expect, and github-markdown.css wins the cascade for\n' +
+    ' * pre padding — widen the selectors and force the gutter padding. */\n' +
+    'pre.line-numbers { position: relative; padding-left: 3.8em !important; counter-reset: linenumber; }\n' +
+    'pre.line-numbers > code { position: relative; white-space: inherit; }\n'
+  );
 }
 
 /** Builds the article stylesheet from github-markdown-css: the three theme
