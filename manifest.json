@@ -4,6 +4,12 @@
   "version": "1.0.0",
   "description": "Render Markdown files (.md) opened in the browser: marked.js for markup, Prism.js for code, pele for Mermaid diagrams.",
   "minimum_chrome_version": "102",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "background": {
     "service_worker": "background.js"
   },

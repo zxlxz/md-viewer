@@ -204,6 +204,7 @@ const copyStatic = {
     build.onEnd(() => {
       fs.cpSync('css', 'dist/css', { recursive: true });
       fs.cpSync('manifest.json', 'dist/manifest.json');
+      fs.cpSync('icons', 'dist/icons', { recursive: true });
       fs.cpSync('src/options.html', 'dist/options.html');
       // KaTeX stylesheet + all font formats referenced by its CSS fallbacks.
       const katexDist = 'node_modules/katex/dist';
