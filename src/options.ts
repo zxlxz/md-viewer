@@ -22,7 +22,8 @@ import {
 
 const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-/* Local Font Access API (Chrome 103+; manifest needs the localFonts perm). */
+/* Local Font Access API (Chrome 103+). Needs no manifest permission; Chrome
+ * prompts the user on the first call, so it runs only from the font select. */
 interface LocalFontFace {
   family: string;
 }
