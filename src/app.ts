@@ -148,6 +148,7 @@ marked.use(markedKatex({ nonStandard: true, throwOnError: false }));
 
   function applySettings() {
     applyLineNumbers();
+    document.documentElement.style.setProperty('--md-font-size', settings.fontSize + 'px');
     document.documentElement.setAttribute('data-md-theme', settings.theme);
     document.documentElement.setAttribute('data-md-theme', settings.theme);
     document.documentElement.setAttribute('data-md-prism', resolvedPrism());

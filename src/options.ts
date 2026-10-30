@@ -8,6 +8,8 @@ import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-json';
 import 'prismjs/plugins/line-numbers/prism-line-numbers'; // complete-hook based; needs pre.line-numbers + its css (in generated prism.css)
 import {
+  BODY_FONTS,
+  CODE_FONTS,
   DEFAULTS,
   loadSettings,
   onSettingsChanged,
@@ -19,6 +21,28 @@ import {
 } from './settings';
 
 const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+/* Local Font Access API (Chrome 103+; manifest needs the localFonts perm). */
+interface LocalFontFace {
+  family: string;
+}
+declare global {
+  interface Window {
+    queryLocalFonts?: () => Promise<LocalFontFace[]>;
+  }
+}
+
+/** Select value that triggers a system-font scan instead of a selection. */
+const DETECT = '__detect__';
+/** Families found on this device — session-only (device-specific, too big
+ * for sync storage). Null until the first scan. */
+let detectedFonts: string[] | null = null;
+
+/** Quoted family name as a CSS font-family stack (quoted so any name,
+ * including ones with spaces or digits, is a valid family token). */
+function familyStack(family: string): string {
+  return '"' + family.replace(/["\\]/g, '') + '"';
+}
 
 let settings: MdSettings = { ...DEFAULTS };
 
@@ -40,8 +64,62 @@ function apply() {
   };
   setOrClear('--md-font', settings.font);
   setOrClear('--md-code-font', settings.codeFont);
+  document.documentElement.style.setProperty('--md-font-size', settings.fontSize + 'px');
   applySampleLineNumbers();
   syncControls();
+}
+
+/* Fill the font selects: curated lists from settings.ts (single source of
+ * truth), a "detect" entry that scans the device via queryLocalFonts, and —
+ * once scanned — an optgroup with the families found on this device. */
+function fillFontSelects() {
+  const canDetect = typeof window.queryLocalFonts === 'function';
+  for (const [sel, list] of [
+    ['#body-font', BODY_FONTS],
+    ['#code-font', CODE_FONTS],
+  ] as const) {
+    const select = document.querySelector<HTMLSelectElement>(sel);
+    if (!select) continue;
+    select.textContent = '';
+    if (canDetect) {
+      const opt = document.createElement('option');
+      opt.value = DETECT;
+      opt.textContent = 'Detect system fonts…';
+      select.appendChild(opt);
+    }
+    for (const f of list) {
+      const opt = document.createElement('option');
+      opt.value = f.stack;
+      opt.textContent = f.label;
+      select.appendChild(opt);
+    }
+    if (detectedFonts) {
+      const group = document.createElement('optgroup');
+      group.label = 'On this device';
+      for (const family of detectedFonts) {
+        const opt = document.createElement('option');
+        opt.value = familyStack(family);
+        opt.textContent = family;
+        group.appendChild(opt);
+      }
+      select.appendChild(group);
+    }
+  }
+}
+
+/** queryLocalFonts returns one face per style; keep unique families. */
+async function detectFonts() {
+  if (!window.queryLocalFonts) return;
+  try {
+    const faces = await window.queryLocalFonts();
+    const families = [...new Set(faces.map((f) => f.family))].sort((a, b) =>
+      a.localeCompare(b)
+    );
+    if (families.length) detectedFonts = families;
+  } catch {
+    /* picker dismissed / permission denied — keep the curated lists */
+  }
+  fillFontSelects();
 }
 
 /* The sample carries the class before highlight time (init highlights it
@@ -74,11 +152,12 @@ function syncControls() {
   if (light) light.value = settings.prismLight;
   if (dark) dark.value = settings.prismDark;
 
-  // Don't clobber a field the user is typing in.
-  const bodyFont = document.querySelector<HTMLInputElement>('#body-font');
-  const codeFont = document.querySelector<HTMLInputElement>('#code-font');
-  if (bodyFont && document.activeElement !== bodyFont) bodyFont.value = settings.font;
-  if (codeFont && document.activeElement !== codeFont) codeFont.value = settings.codeFont;
+  const bodyFont = document.querySelector<HTMLSelectElement>('#body-font');
+  const codeFont = document.querySelector<HTMLSelectElement>('#code-font');
+  const fontSize = document.querySelector<HTMLSelectElement>('#font-size');
+  if (bodyFont) bodyFont.value = settings.font;
+  if (codeFont) codeFont.value = settings.codeFont;
+  if (fontSize) fontSize.value = String(settings.fontSize);
 
   const lineNumbers = document.querySelector<HTMLInputElement>('#line-numbers');
   if (lineNumbers) lineNumbers.checked = settings.lineNumbers;
@@ -138,31 +217,27 @@ function wire() {
     void saveSetting('lineNumbers', settings.lineNumbers);
   });
 
-  // Font typing saves debounced per field (a shared timer could drop one
-  // field's save when the other is typed right after); other-origin changes
-  // arrive through onSettingsChanged.
-  const fontTimers: Partial<Record<'font' | 'codeFont', ReturnType<typeof setTimeout>>> = {};
-  const flushFont = (key: 'font' | 'codeFont') => {
-    const timer = fontTimers[key];
-    if (timer === undefined) return;
-    clearTimeout(timer);
-    delete fontTimers[key];
-    void saveSetting(key, safeFontValue(settings[key]) as never);
-  };
+  // Select-only fonts save on change (no typing, no debounce needed); other-
+  // origin changes arrive through onSettingsChanged.
   const wireFont = (id: string, key: 'font' | 'codeFont') => {
-    document.querySelector<HTMLInputElement>(id)?.addEventListener('input', (e) => {
-      settings[key] = (e.target as HTMLInputElement).value;
+    document.querySelector<HTMLSelectElement>(id)?.addEventListener('change', (e) => {
+      const select = e.target as HTMLSelectElement;
+      if (select.value === DETECT) {
+        void detectFonts().then(() => syncControls()); // re-sync restores the selection
+        return;
+      }
+      settings[key] = select.value;
       apply();
-      clearTimeout(fontTimers[key]);
-      fontTimers[key] = setTimeout(() => flushFont(key), 300);
+      void saveSetting(key, settings[key]);
     });
   };
   wireFont('#body-font', 'font');
   wireFont('#code-font', 'codeFont');
-  // Closing the tab within the debounce window must not lose the edit.
-  window.addEventListener('pagehide', () => {
-    flushFont('font');
-    flushFont('codeFont');
+
+  document.querySelector<HTMLSelectElement>('#font-size')?.addEventListener('change', (e) => {
+    settings.fontSize = Number((e.target as HTMLSelectElement).value);
+    apply();
+    void saveSetting('fontSize', settings.fontSize);
   });
 
   onSettingsChanged((s) => {
@@ -176,6 +251,7 @@ function wire() {
 
 async function init() {
   fillPrismSelects();
+  fillFontSelects();
   settings = await loadSettings();
   wire();
   apply();

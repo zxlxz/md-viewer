@@ -16,6 +16,36 @@ export interface PrismThemeInfo {
 
 export const PRISM_THEMES: PrismThemeInfo[] = prismThemes;
 
+/** One selectable font: the CSS stack injected into --md-font/--md-code-font.
+ * The '' stack keeps the CSS default (GitHub body / mono stack). */
+export interface FontOption {
+  label: string;
+  stack: string;
+}
+
+/** Curated body-font list (options page select; this list whitelists the
+ * `font` setting). */
+export const BODY_FONTS: FontOption[] = [
+  { label: 'Default (GitHub body stack)', stack: '' },
+  { label: 'System UI', stack: 'system-ui' },
+  { label: 'Segoe UI / Microsoft YaHei', stack: "'Segoe UI', 'Microsoft YaHei', sans-serif" },
+  { label: 'Noto Sans SC', stack: "'Noto Sans SC', sans-serif" },
+  { label: 'Arial', stack: 'Arial, Helvetica, sans-serif' },
+  { label: 'Georgia (serif)', stack: "Georgia, 'Times New Roman', serif" },
+];
+
+/** Curated code-font list (whitelists the `codeFont` setting). */
+export const CODE_FONTS: FontOption[] = [
+  { label: 'Default (GitHub mono stack)', stack: '' },
+  { label: 'JetBrains Mono', stack: 'JetBrains Mono' },
+  { label: 'Fira Code', stack: 'Fira Code' },
+  { label: 'Cascadia Code', stack: 'Cascadia Code' },
+  { label: 'Source Code Pro', stack: 'Source Code Pro' },
+  { label: 'Consolas', stack: 'Consolas' },
+  { label: 'Menlo', stack: 'Menlo' },
+  { label: 'Monospace', stack: 'monospace' },
+];
+
 export interface MdSettings {
   theme: ThemeSetting;
   width: string;
@@ -26,10 +56,14 @@ export interface MdSettings {
   prismLight: string;
   /** Prism theme used when the resolved page theme is dark (dark, dimmed). */
   prismDark: string;
-  /** Body font-family override; '' keeps the CSS default stack. */
+  /** Body font-family override; '' keeps the CSS default stack. Either a
+   * BODY_FONTS stack or a family detected via queryLocalFonts — anything
+   * injection-safe (safeFontValue) is accepted. */
   font: string;
-  /** Code font-family override; '' keeps the CSS default stack. */
+  /** Code font-family override; same rules as `font` against CODE_FONTS. */
   codeFont: string;
+  /** Article base font size in px (12–20). */
+  fontSize: number;
   /** Show line numbers on highlighted code blocks (Prism line-numbers plugin). */
   lineNumbers: boolean;
 }
@@ -43,6 +77,7 @@ export const DEFAULTS: MdSettings = {
   prismDark: 'dark',
   font: '',
   codeFont: '',
+  fontSize: 16,
   lineNumbers: false,
 };
 
@@ -70,8 +105,17 @@ function sanitize(raw: Record<string, unknown>): MdSettings {
   }
   if (typeof raw.prismLight === 'string' && PRISM_IDS.has(raw.prismLight)) out.prismLight = raw.prismLight;
   if (typeof raw.prismDark === 'string' && PRISM_IDS.has(raw.prismDark)) out.prismDark = raw.prismDark;
-  if (typeof raw.font === 'string') out.font = raw.font;
-  if (typeof raw.codeFont === 'string') out.codeFont = raw.codeFont;
+  // Fonts are select-only (curated lists + queryLocalFonts detection), but a
+  // detected family is an arbitrary string — accept any injection-safe stack.
+  if (typeof raw.font === 'string' && (raw.font === '' || safeFontValue(raw.font))) {
+    out.font = raw.font;
+  }
+  if (typeof raw.codeFont === 'string' && (raw.codeFont === '' || safeFontValue(raw.codeFont))) {
+    out.codeFont = raw.codeFont;
+  }
+  if (typeof raw.fontSize === 'number' && Number.isFinite(raw.fontSize)) {
+    out.fontSize = Math.min(20, Math.max(12, raw.fontSize));
+  }
   if (typeof raw.lineNumbers === 'boolean') out.lineNumbers = raw.lineNumbers;
   return out;
 }

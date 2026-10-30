@@ -118,6 +118,9 @@ html {
 
 #md-viewer > .markdown-body {
   box-sizing: border-box;
+  /* User font size; the id ties with the scoped github-markdown.css rule
+   * that hardcodes font-size on .markdown-body. */
+  font-size: var(--md-font-size, 16px);
   padding: 44px 56px 56px;
   border: 1px solid var(--md-border);
   border-radius: 14px;

@@ -7,7 +7,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["scripting", "storage"],
+  "permissions": ["scripting", "storage", "localFonts"],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
